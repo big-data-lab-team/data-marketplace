@@ -23,7 +23,7 @@ app.use('/', function (req, res, next) {
     }
     else{
       res.writeHead(401, { 'Content-Type': 'application/json' });
-      res.write(`{"status": "error", "message":"Login required"}`);
+      res.write(`{"status": "error", "message":"Auth required"}`);
       res.end();
     }
   }
