@@ -17,18 +17,42 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.use('/', function (req, res, next) {
-  if(req.headers['x-api-key'] === undefined){
-    if(req.url === '/user/auth'){
+  if (req.headers['x-api-key'] === undefined) {
+    if (req.url === '/user/auth' || req.url === '/user/auth/' || req.url === '/data' || req.url === '/data/' || req.url === '/user/validate'
+          || ((req.url === '/data/categories' || req.url === '/data/categories/') && req.method === 'GET')) {
       next();
     }
-    else{
+    else if((req.url === '/user' || req.url === '/user/') && req.method === 'POST'){
+      next();
+    }
+    else {
       res.writeHead(401, { 'Content-Type': 'application/json' });
       res.write(`{"status": "error", "message":"Auth required"}`);
       res.end();
     }
   }
-  else{
-    next();
+  else {
+    con.query(`SELECT * FROM users WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
+      if (err)
+        throw err;
+      else {
+        if (result.length === 0) {
+          res.writeHead(401, { 'Content-Type': 'application/json' });
+          res.write(`{"status": "401", "message":"Unauthorized access"}`);
+          res.end();
+        }
+        else {
+          if (result[0].validated === 0) {
+            res.writeHead(403, { 'Content-Type': 'application/json' });
+            res.write(`{"status": "403", "message":"Forbidden access! Validation required"}`);
+            res.end();
+          }
+          else {
+            next();
+          }
+        }
+      }
+    });
   }
 });
 

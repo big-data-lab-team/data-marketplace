@@ -14,14 +14,49 @@ module.exports = function (app, con) {
                     res.write(`{"status": "401", "message":"Unauthorized access"}`);
                     res.end();
                 }
-                else { //Else update the user associated with the API KEY
+                else {
+                    if (result[0].validated === 0) {
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.write(`{"status": "401", "message":"Unauthorized access. Validation required"}`);
+                        res.end();
+                    }
+                    else {
+                        var apiKey = apikey(30);
+                        con.query(`UPDATE users SET apiKey = '${apiKey}' WHERE id = ${result[0].id}`, function (err, result) {
+                            if (err)
+                                throw err;
+                            else {
+                                res.writeHead(200, { 'Content-Type': 'application/json' });
+                                res.write(`{"status": "200", "x-api-key":"${apiKey}"}`);
+                                res.end();
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    });
+
+    app.post('/user/validate', function (req, res) {
+        con.query(`SELECT * FROM users WHERE apiKey like '${req.body.validationKey}'`, function (err, result) {
+            if (err)
+                throw err;
+            else {
+                //If it is not available it is an unauthorized access
+                if (result.length === 0) {
+                    res.writeHead(401, { 'Content-Type': 'application/json' });
+                    res.write(`{"status": "401", "message":"Unauthorized access"}`);
+                    res.end();
+                }
+                else {
+                    //Else update the user associated with the API KEY
                     var apiKey = apikey(30);
-                    con.query(`UPDATE users SET apiKey = '${apiKey}' WHERE id = ${result[0].id}`,function(err, result){
-                        if(err)
+                    con.query(`UPDATE users SET apiKey = '${apiKey}', validated = 1 WHERE id = ${result[0].id}`, function (err, result) {
+                        if (err)
                             throw err;
-                        else{
+                        else {
                             res.writeHead(200, { 'Content-Type': 'application/json' });
-                            res.write(`{"status": "200", "x-api-key":"${apiKey}"}`);
+                            res.write(`{"status": "200", "message":"Account validated successfully. Now you can login using your username and password"}`);
                             res.end();
                         }
                     });
@@ -41,9 +76,15 @@ module.exports = function (app, con) {
                     res.write(`{"status": "401", "message":"Unauthorized access"}`);
                     res.end();
                 }
-                else { //Else update the user associated with the API KEY
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.write(`{"status": "200", 
+                else {
+                    if (result[0].validated === 0) {
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.write(`{"status": "401", "message":"Unauthorized access. Validation required"}`);
+                        res.end();
+                    }
+                    else {
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        res.write(`{"status": "200", 
                                   "user":{
                                     "username":"${result[0].username}",
                                     "email":"${result[0].email}",
@@ -52,30 +93,34 @@ module.exports = function (app, con) {
                                     "city":"${result[0].city}",
                                     "province":"${result[0].province}",
                                     "birth":${result[0].yearOfBirth}}}`);
-                    res.end();
+                        res.end();
+                    }
                 }
             }
         });
     });
 
     app.post('/user', function (req, res) {//requires
-        con.query(`SELECT * FROM users WHERE email like '${req.body.email}'`, function (err, result) {
+        con.query(`SELECT * FROM users WHERE email like '${req.body.email}' OR username like '${req.body.username}'`, function (err, result) {
             if (err)
                 throw err;
             else {
                 if (result.length > 0) {
                     res.writeHead(409, { 'Content-Type': 'application/json' }); // 409 Conflict
-                    res.write(`{"status": "409", "message":"Email already registered"}`);
+                    res.write(`{"status": "409", "message":"Username or Email already registered"}`);
                     res.end();
                 } //End IF : if the email is already registered
                 else {
                     var uid = uuid();// a unique id is generated
-                    con.query(`INSERT INTO users (username, password, email, uuid, apiKey) VALUES ("${req.body.username}", "${md5(req.body.password)}", "${req.body.email}", "${uid}","${apikey(30)}")`, function (err, result) {
+                    con.query(`INSERT INTO users (username, password, email, uuid, apiKey, country, city, province, yearOfBirth) VALUES ("${req.body.username}", "${md5(req.body.password)}", "${req.body.email}", "${uid}","${apikey(30)}", "${req.body.country}", "${req.body.city}", "${req.body.province}", ${req.body.yearOfBirth})`, function (err, result) {
                         if (err)
                             throw err;
                         else {
+                            //Send an email confirmation include the link
+                            //POST /user/validate and include validation key
+
                             res.writeHead(201, { 'Content-Type': 'application/json' });
-                            res.write(`{"status": "201", "message":"Created successfully"`);
+                            res.write(`{"status": "201", "message":"Created successfully"}`);
                             res.end();
                         }
                     });
@@ -97,11 +142,11 @@ module.exports = function (app, con) {
                     res.end();
                 }
                 else { //Else update the user associated with the API KEY
-                    con.query(`UPDATE users SET username ="${req.body.username}" AND password = "${req.body.password}" AND email = "${req.body.email}" AND country = "${req.body.country}" AND city = "${req.body.city}" AND province = "${req.body.province}" AND yearOfBirth = ${req.body.yearOfBirth} WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
+                    con.query(`UPDATE users SET username ="${req.body.username}", password = "${md5(req.body.password)}", email = "${req.body.email}", country = "${req.body.country}" , city = "${req.body.city}" , province = "${req.body.province}", yearOfBirth = ${req.body.birth} WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
                         if (err)
                             throw err;
                         else {
-                            res.writeHead(201, { 'Content-Type': 'application/json' });//201
+                            res.writeHead(200, { 'Content-Type': 'application/json' });//201
                             res.write(`{"status": "200", "message":"Updated successfully"}`);
                             res.end();
                         }
