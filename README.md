@@ -22,6 +22,11 @@
       source $PATH\datacoin.sql
       NOTE: ($PATH = path of the sql script where the this repo was cloned on your local machine)
       You should be logged in to the mysql server and the command line is ready to process queries(mysql> )
+  
+  <strong>Database Configuration:</strong>
+      
+      Database configuration are present in /controllers/mysql.js 
+      you can modify it if you want to change the username, password, or database name.
 
   <strong>Now you should have the source code and the database setup on your machine</strong>
   
