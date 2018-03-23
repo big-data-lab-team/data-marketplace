@@ -26,7 +26,8 @@
   <strong>Database Configuration:</strong>
       
       Database configuration are present in /controllers/mysql.js 
-      you can modify it if you want to change the username, password, or database name.
+      You can modify it if you want to change the username, password, or database name, 
+      according to your MySQL server configuration.
 
   <strong>Now you should have the source code and the database setup on your machine</strong>
   
