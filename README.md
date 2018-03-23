@@ -7,7 +7,7 @@
     npm install npm@latest -g
     npm install node@latest -g
   
-  <strong>You can also Download and install from:</strong>
+  <strong>You can also Download and install from (If the previous step did not work):</strong>
   
     https://nodejs.org/en/download/current/
     
