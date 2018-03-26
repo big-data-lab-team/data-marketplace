@@ -2,6 +2,10 @@
 
 <h1>HOW TO: (Make sure you have root or admin access)</h1>
 <ul>
+  
+    The API and the UI are two separate application:
+    put datamarket folder, included in the www/ directory, in your machine localhost www web directory
+  
   <strong>Run these commands to install npm and node:</strong>
  
     npm install npm@latest -g
