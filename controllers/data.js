@@ -1,8 +1,11 @@
 module.exports = function (app, con) {
     app.post('/data', function (req, res) {
         con.query(`SELECT * FROM users WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
-            if (err)
-                throw err;
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.write(`{"status": "error", "message":"Internal Error"}`);
+                res.end();
+            }
             else {
                 //If it is not available it is an unauthorized access
                 if (result.length === 0) {
@@ -11,28 +14,45 @@ module.exports = function (app, con) {
                     res.end();
                 }
                 else {
-                    con.query(`INSERT INTO data (name, price, owner_id, category_id) VALUES ('${req.body.name}',${req.body.price},${result[0].id},${req.body.categoryid})`, function (err, result) {
-                        if (err)
-                            throw err;
-                        else {
-                            var query = ``;
-                            if (req.body.tags.length > 0) { //if the request contains tags
-                                for (var i = 0; i < req.body.tags.length; i++) {//Build query
-                                    query += `INSERT INTO tags (name, value, data_id) VALUES ("${req.body.tags[i].key}", "${req.body.tags[i].value}", ${result.insertId}); `;
-                                }
-                                con.query(query, function (err, result) {//Insert tags related to Data item
-                                    if (err)
-                                        throw err;
-                                    else {
-                                        res.writeHead(201, { 'Content-Type': 'application/json' });
-                                        res.write(`{"status": "201", 
-                                                "message":"Created successfully"}`);
-                                        res.end();
-                                    }
-                                });
+                    if (req.body.name !== undefined && req.body.name !== ''
+                            && req.body.price !== undefined && req.body.price !== '') {
+                        con.query(`INSERT INTO data (name, price, owner_id, category_id) VALUES ('${req.body.name}',${Math.abs(req.body.price)},${result[0].id},${req.body.categoryid})`, function (err, result) {
+                            if (err) {
+                                res.writeHead(500, { 'Content-Type': 'application/json' });
+                                res.write(`{"status": "error", "message":"Internal Error"}`);
+                                res.end();
                             }
-                        }
-                    });
+                            else {
+                                var query = ``;
+                                if (req.body.tags.length > 0) { //if the request contains tags
+                                    for (var i = 0; i < req.body.tags.length; i++) {//Build query
+                                        //Only insert non empty tags
+                                        if(req.body.tags[i].key !== undefined && req.body.tags[i].key !== ''
+                                        && req.body.tags[i].value !== undefined && req.body.tags[i].value !== ''){
+                                        query += `INSERT INTO tags (name, value, data_id) VALUES ("${req.body.tags[i].key}", "${req.body.tags[i].value}", ${result.insertId}); `;
+                                        }
+                                    }
+                                    con.query(query, function (err, result) {//Insert tags related to Data item
+                                        if (err) {
+                                            res.writeHead(500, { 'Content-Type': 'application/json' });
+                                            res.write(`{"status": "error", "message":"Internal Error"}`);
+                                            res.end();
+                                        }
+                                        else {
+                                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                                            res.write(`{"status": "201", "message":"Created successfully"}`);
+                                            res.end();
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.write(`{"status": "400", "message":"Malformed request. Verify your parameters"}`);
+                        res.end();
+                    }
                 }
             }
         });
@@ -74,13 +94,16 @@ module.exports = function (app, con) {
             }
         }
         con.query(query, function (err, result) {
-            if (err)
-                throw err;
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.write(`{"status": "error", "message":"Internal Error"}`);
+                res.end();
+            }
             else {
-                if(result.length > 0){
+                if (result.length > 0) {
                     getTags(result);
                 }
-                else{
+                else {
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.write(`{"status": "200", "data":[]}`);
                     res.end();
@@ -92,8 +115,11 @@ module.exports = function (app, con) {
             var arr = [];
             for (let i = 0; i < result.length; i++) {
                 con.query(`SELECT * FROM tags WHERE data_id=${result[i].id}`, function (err, tags) {
-                    if (err)
-                        throw err;
+                    if (err) {
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.write(`{"status": "error", "message":"Internal Error"}`);
+                        res.end();
+                    }
                     else {
                         addTags(result, tags, i, result.length);
                     }
@@ -113,8 +139,11 @@ module.exports = function (app, con) {
 
     app.put('/data', function (req, res) {
         con.query(`SELECT * FROM users WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
-            if (err)
-                throw err;
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.write(`{"status": "error", "message":"Internal Error"}`);
+                res.end();
+            }
             else {
                 //Verify if the API key exists
                 if (result.length === 0) {
@@ -124,8 +153,11 @@ module.exports = function (app, con) {
                 }
                 else {//If API exists verify if the requesting user is the actual owner of the data
                     con.query(`SELECT data.id, data.owner_id, users.uuid FROM data INNER JOIN users ON data.owner_id = users.id WHERE users.apiKey like '${req.headers['x-api-key']}' AND data.id = ${req.body.id}`, function (err, result) {
-                        if (err)
-                            throw err;
+                        if (err) {
+                            res.writeHead(500, { 'Content-Type': 'application/json' });
+                            res.write(`{"status": "error", "message":"Internal Error"}`);
+                            res.end();
+                        }
                         else {
                             //The data id submitted does not figure in the list of data ids belonging to the requesting user
                             if (result.length === 0) {
@@ -134,9 +166,12 @@ module.exports = function (app, con) {
                                 res.end();
                             }
                             else {
-                                con.query(`UPDATE data SET name="${req.body.name}", price=${req.body.price}, owner_id=${result[0].id}, category_id=${req.body.categoryid} WHERE id=${req.body.id}`, function (err, result) {
-                                    if (err)
-                                        throw err;
+                                con.query(`UPDATE data SET name="${req.body.name}", price=${Math.abs(req.body.price)}, owner_id=${result[0].id}, category_id=${req.body.categoryid} WHERE id=${req.body.id}`, function (err, result) {
+                                    if (err) {
+                                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                                        res.write(`{"status": "error", "message":"Internal Error"}`);
+                                        res.end();
+                                    }
                                     else {
                                         //Tags containing id field are to be updated
                                         //Tags missing id field are considered new tags and added as new one 
@@ -156,7 +191,11 @@ module.exports = function (app, con) {
                                             //Process the multi query to update
                                             con.query(query, function (err, tags) {//Update tags related to Data item
                                                 if (err) {
-                                                    throw err;
+                                                    {
+                                                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                                                        res.write(`{"status": "error", "message":"Internal Error"}`);
+                                                        res.end();
+                                                    }
                                                 }
                                                 else {
                                                     res.writeHead(201, { 'Content-Type': 'application/json' });
@@ -177,12 +216,14 @@ module.exports = function (app, con) {
 
     app.get('/data/categories', function (req, res) {
         con.query(`SELECT * FROM categories`, function (err, result) {
-            if (err)
-                throw err;
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.write(`{"status": "error", "message":"Internal Error"}`);
+                res.end();
+            }
             else {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.write(`{"status": "200", 
-                            "categories":${JSON.stringify(result)}}`);
+                res.write(`{"status": "200","categories":${JSON.stringify(result)}}`);
                 res.end();
             }
         });
@@ -190,8 +231,11 @@ module.exports = function (app, con) {
 
     app.post('/data/categories', function (req, res) {
         con.query(`SELECT * FROM users WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
-            if (err)
-                throw err;
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.write(`{"status": "error", "message":"Internal Error"}`);
+                res.end();
+            }
             else {
                 //If it is not available it is an unauthorized access
                 if (result.length === 0) {
@@ -207,8 +251,11 @@ module.exports = function (app, con) {
                     }
                     else {
                         con.query(`INSERT INTO categories (name, description) VALUES ('${req.body.name}','${req.body.description}')`, function (err, result) {
-                            if (err)
-                                throw err;
+                            if (err) {
+                                res.writeHead(500, { 'Content-Type': 'application/json' });
+                                res.write(`{"status": "error", "message":"Internal Error"}`);
+                                res.end();
+                            }
                             else {
                                 res.writeHead(201, { 'Content-Type': 'application/json' });
                                 res.write(`{"status": "201", "message":"Created successfully"}`);
@@ -223,8 +270,11 @@ module.exports = function (app, con) {
 
     app.put('/data/categories', function (req, res) {
         con.query(`SELECT * FROM users WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
-            if (err)
-                throw err;
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.write(`{"status": "error", "message":"Internal Error"}`);
+                res.end();
+            }
             else {
                 //If it is not available it is an unauthorized access
                 if (result.length === 0) {
@@ -240,8 +290,11 @@ module.exports = function (app, con) {
                     }
                     else {
                         con.query(`UPDATE categories SET name = '${req.body.name}', description = '${req.body.description}' WHERE id = ${req.body.id}`, function (err, result) {
-                            if (err)
-                                throw err;
+                            if (err) {
+                                res.writeHead(500, { 'Content-Type': 'application/json' });
+                                res.write(`{"status": "error", "message":"Internal Error"}`);
+                                res.end();
+                            }
                             else {
                                 res.writeHead(200, { 'Content-Type': 'application/json' });
                                 res.write(`{"status": "200", "message":"Updated successfully"}`);

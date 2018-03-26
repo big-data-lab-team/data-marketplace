@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="./assets/js/loader.js"></script>
+
+    <title>Data Market</title>
+</head>
+
+<body>
+    <div class="container w-50 p-3">
+        <div class="card text-center">
+            <div class="card-header">
+                <h3>Activation</h3>
+            </div>
+            <div class="card-title p-3" id="card-title">
+                <!-- Alert -->
+            </div>
+            <div class="card-body">
+                <form id="signup-form" name="activationForm">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input class="form-control" name="email" type="email" placeholder="Email" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                            <div class="input-group">
+                                <input class="form-control" name="key" type="key" placeholder="Activation Key" required>
+                            </div>
+                        </div>
+                        
+                    <button class="btn btn-primary" type="button" onclick="activate(activationForm.email.value, 
+                                                                                    activationForm.key.value)">Activate</button>
+                </form>
+
+            </div>
+            <div class="card-footer text-muted">
+                Don't have a validation key?
+                <br/>
+                <a href="#" onclick="requestActivationKey(activationForm.email.value)">Request a new one</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

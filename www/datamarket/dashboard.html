@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <script src="./assets/js/loader.js"></script>
+
+    <title>Data Market</title>
+</head>
+
+<body onload="loadDashboard()">
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Data Market</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ml-auto">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Account
+                        </button>
+                        <div class="dropdown-menu" id="account-dropdown">
+                            <a class="dropdown-item" href="" data-toggle="modal" data-target="#login-modal">Login</a>
+                        </div>
+                    </div>
+                </ul>
+            </div>
+        </nav>
+
+
+        <!-- Side menu -->
+        <div class="row" id="options">
+            <div class="col-3">
+                <div class="list-group" id="options-list" role="tablist">
+                    <a class="list-group-item list-group-item-action active" onclick="getEditAccount()" id="edit-account" data-toggle="list"
+                        href="#" role="tab">
+                        Edit Account</a>
+                    <a class="list-group-item list-group-item-action" onclick="getMyData()" id="my-data" data-toggle="list" href="#" role="tab">
+                        My Data</a>
+                    <a class="list-group-item list-group-item-action" onclick="getSellData()" id="sell-data" data-toggle="list" href="#" role="tab">
+                        Sell Data</a>
+                    <a class="list-group-item list-group-item-action" onclick="getOutRequests()" id="requests-sent" data-toggle="list" href="#"
+                        role="tab">
+                        Requests Sent</a>
+                    <a class="list-group-item list-group-item-action" onclick="getInRequests()" id="requests-received" data-toggle="list" href="#"
+                        role="tab">
+                        Requests Received</a>
+                </div>
+            </div>
+            <div class="col-9" id="content">
+                <div class="list-group" id="dash-content" role="tablist">
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-labelledby="login-modal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <span id="alert-span">
+                        <!-- Custom alert -->
+                    </span>
+                    <form name="loginForm">
+                        <div class="form-group row">
+                            <label for="username" class="col-sm-2 col-form-label">Username</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="password" class="col-sm-2 col-form-label">Password</label>
+                            <div class="col-sm-10">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-10">
+                                <button type="button" class="btn btn-primary" onclick="login(loginForm.username.value, loginForm.password.value)">Sign in</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <h6> Don't have an account? </h6>
+                    <a type="button" href="signup.html" class="btn btn-primary">Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Details Modal -->
+    <div class="modal fade" id="details-modal" tabindex="-1" role="dialog" aria-labelledby="details-modal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="loginModalLabel">Data Details</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="data-modal-body" name="dataBody">
+                        <!-- To be loaded from the API -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onlick="updateData()">Update</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+</body>
+
+</html>

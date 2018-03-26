@@ -17,24 +17,30 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.use('/', function (req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Access-Control-Allow-Methods', '*');
   if (req.headers['x-api-key'] === undefined) {
     if (req.url === '/user/auth' || req.url === '/user/auth/' || req.url === '/data' || req.url === '/data/' || req.url === '/user/validate'
-          || ((req.url === '/data/categories' || req.url === '/data/categories/') && req.method === 'GET')) {
+      || ((req.url === '/data/categories' || req.url === '/data/categories/') && req.method === 'GET')) {
       next();
     }
-    else if((req.url === '/user' || req.url === '/user/') && req.method === 'POST'){
+    else if ((req.url === '/user' || req.url === '/user/')) {// && req.method === 'POST'
       next();
     }
     else {
       res.writeHead(401, { 'Content-Type': 'application/json' });
-      res.write(`{"status": "error", "message":"Auth required"}`);
+      res.write(`{"status": "401", "message":"Auth required"}`);
       res.end();
     }
   }
   else {
     con.query(`SELECT * FROM users WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
-      if (err)
-        throw err;
+      if (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.write(`{"status": "400", "message":"Bad request"}`);
+        res.end();
+      }
       else {
         if (result.length === 0) {
           res.writeHead(401, { 'Content-Type': 'application/json' });
@@ -60,4 +66,6 @@ userController(app, con);
 dataController(app, con);
 transactionsController(app, con);
 
-app.listen(port);
+app.listen(port, function () {
+  console.log('Datacoin app running, Listening on port: ' + port);
+});
