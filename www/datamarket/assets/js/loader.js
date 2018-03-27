@@ -400,24 +400,26 @@ function activate(email, key) {
     });
 }//Done
 
-function requestActivationKey(email) {
-    if (email !== '' && email !== undefined) {
+function requestValidationKey(username, password) {
+    if (username !== '' && username !== undefined && password !== '' && password !== undefined) {
         $.ajax({
             url: "http://datacoin.iptvclient.com:3000/user/validate",
-            type: "GET",
+            type: "POST",
+            dataType: 'json',
             headers: {
-                "x-user-email": `${email}`,
-                "Content-Type": "text/plain"
+                "Content-Type": "application/json"
             },
+            data: `{"username":"${username}", "password":"${password}"}`,
+            processData: false,
             success: function (data) {
                 if (data.status === '200') {
-                    $("#card-title").html(`<div class="alert alert-success">
+                    $("#validation-alert-span").html(`<div class="alert alert-success">
                 <strong>Success!</strong> ${data.message}
               </div>`);
                 }
             },
             error: function (data) {
-                $('#card-title').html(`<div class="alert alert-danger">
+                $('#validation-alert-span').html(`<div class="alert alert-danger">
         <strong>Error(${data.responseJSON['status']})!</strong> ${data.responseJSON['message']}.
       </div>`);
             }

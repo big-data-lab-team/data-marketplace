@@ -21,7 +21,7 @@ app.use('/', function (req, res, next) {
   res.setHeader("Access-Control-Allow-Methods",  "POST, GET, PUT, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Credentials",  false);
   res.setHeader("Access-Control-Max-Age", '86400'); // 24 hours
-  res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, x-api-key, x-data-filters");
+  res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, x-api-key, x-data-filters, x-user-email");
       
   if (req.method === 'OPTIONS') {
       var headers = {};
