@@ -36,6 +36,7 @@ app.use('/', function (req, res, next) {
       res.end();  
   }
   else {
+    console.log(req.url);
     if (req.headers['x-api-key'] === undefined) {
       if (req.url === '/user/auth' || req.url === '/user/auth/' || req.url === '/data' || req.url === '/data/' || req.url === '/user/validate'
         || ((req.url === '/data/categories' || req.url === '/data/categories/') && req.method === 'GET')) {
@@ -45,7 +46,6 @@ app.use('/', function (req, res, next) {
         next();
       }
       else {
-        console.log(req.body);
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.write(`{"status": "401", "message":"Auth required"}`);
         res.end();
