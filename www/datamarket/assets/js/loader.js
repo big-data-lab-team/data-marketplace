@@ -734,7 +734,7 @@ function getInRequests() {
       </div>`);
         }
     });
-}
+}//Done
 
 function getOutRequests() {
     $.ajax({
@@ -779,10 +779,50 @@ function getOutRequests() {
       </div>`);
         }
     });
-}
+}//Done
 
 function showTransaction(id) {
-
+    $.ajax({
+        url: 'http://datacoin.iptvclient.com:3000/transactions',
+        type: 'get',
+        dataType: 'json',
+        headers: {
+            'x-api-key': sessionStorage.getItem('x-api-key'),
+            'x-tx-filters': `{"tx_id":${id}}`
+        },
+        success: function (data) {
+            //alert(JSON.stringify(data));
+            if (data.status === '200') {
+                if(data.transactions.length === 0){
+                    $('#dash-content').html(`<div class="alert alert-info">
+                    <strong>Empty!</strong> Transaction not found.
+                  </div>`);
+                }
+                else{
+                    var html ='';
+                    var arr = data.transactions;
+                    for(var i=0; i<arr.length; i++){
+                        if(arr[i].status === "Sample uploaded"){
+                        html+=`<a class="list-group-item list-group-item-action" id="${arr[i].id}" onclick="showTransaction(this.id)" data-toggle="modal" data-target="#transactions-modal" role="tab"
+                        aria><button type="button" class="btn btn-info">${arr[i].status}</button> Data: ${arr[i].data.name} | ${arr[i].data.price}$</a>`;
+                        }
+                        else{
+                            html+=`<a class="list-group-item list-group-item-action" id="${arr[i].id}" onclick="showTransaction(this.id)" data-toggle="modal" data-target="#transactions-modal" role="tab"
+                        aria>( ${arr[i].status} )</button> Data: ${arr[i].data.name} | ${arr[i].data.price}$</a>`;
+                         
+                        }
+                    }
+                }
+            
+                $("#dash-content").html(html);
+            }
+        },
+        error: function (data) {
+            $('#card-title').html(`<div class="alert alert-danger">
+        <strong>Error(${data.responseJSON['status']})!</strong> ${data.responseJSON['message']}.
+      </div>`);
+        }
+    });
 }
 
 function updateStatus() {

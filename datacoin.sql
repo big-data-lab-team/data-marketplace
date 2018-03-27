@@ -29,8 +29,9 @@ USE `datacoin`;
 
 --
 -- User: `datacoin`
-CREATE USER IF NOT EXISTS 'datacoin'@'localhost' IDENTIFIED BY 'datacoin';
-GRANT ALL PRIVILEGES ON `datacoin`.* TO 'datacoin'@'localhost';
+DROP USER 'datacoin'@'localhost';
+CREATE USER 'datacoin'@'localhost' IDENTIFIED BY 'datacoin';
+GRANT ALL PRIVILEGES ON datacoin.* TO 'datacoin'@'localhost';
 FLUSH PRIVILEGES;
 
 -- --------------------------------------------------------
