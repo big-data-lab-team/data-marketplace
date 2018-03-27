@@ -18,6 +18,7 @@
   <strong>Clone this repository:</strong>
   
     git clone https://github.com/wassimsabra/data-marketplace.git
+    cd data-marketplace
     The cloned repo contain the database sql script you will need it in the next step
     
   <strong>Assuming you have MySQL server installed execute the following commands:</strong>
