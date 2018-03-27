@@ -1,21 +1,32 @@
 function loadMain() {
     getUser("main");
-    getCategories();
+    getCategories("main");
     getData('');
 }
-function getCategories() {
+function getCategories(page) {
     $.get("http://localhost:3000/data/categories", function (data, status) {
         var arr = data.categories;
         if (data.status === '200') {
-            var html = '';
-            for (var i = 0; i < arr.length; i++) {
-                html += `<div class="custom-control custom-checkbox list-group-item list-group-item-action">
+            if (page === "main") {
+                var html = '';
+                for (var i = 0; i < arr.length; i++) {
+                    html += `<div class="custom-control custom-checkbox list-group-item list-group-item-action">
                 <input type="checkbox" class="custom-control-input" id="${arr[i].id}">
                 <label class="custom-control-label" for="${arr[i].id}">${arr[i].name}</label>
               </div>`;
+                }
+                $("#categories-list").html(html);
+            } else if(page === "dashboard"){
+                var html = '';
+                for (var i = 0; i < arr.length; i++) {
+                    html += `<option value="${arr[i].id}">${arr[i].name}</option>`;
+                }
+                $("#categories-list").html(html);
             }
+
         }
-        $("#categories-list").html(html);
+
+
     });
 }
 
@@ -25,7 +36,7 @@ function getData(filters) {
         if (data.status === '200') {
             var html = '';
             for (var i = 0; i < arr.length; i++) {
-                html += `<a class="list-group-item list-group-item-action" id="${arr[i].id}" data-toggle="modal" data-target="#details-modal" role="tab"
+                html += `<a class="list-group-item list-group-item-action" id="${arr[i].id}" onclick="showData(this.id)" data-toggle="modal" data-target="#details-modal" role="tab"
                 aria>${arr[i].name} <stong>(${arr[i].price}$)</strong></a>`;
             }
         }
@@ -33,9 +44,109 @@ function getData(filters) {
     });
 }
 
+function showData(id) {
+    var filters = {};
+    filters['data-id'] = `${id}`;
+    $.ajax({
+        url: 'http://localhost:3000/data',
+        type: 'get',
+        dataType: 'json',
+        headers: {
+            'x-data-filters': JSON.stringify(filters)
+        },
+        success: function (data) {
+            var currData = data.data[0];
+            var body = `<div class="card text-center">
+    <div class="card-title" id="card-title">
+        <!-- Alert -->
+    </div>
+    <div class="card-body">
+        <form id="data-form" name="dataForm">
+            <div class="form-group">
+                <div class="input-group">
+                <strong><span class="label label-primary" id="dataName">${currData.name}</span></strong>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                <span class="label label-primary" id="dataName">${currData.price}$</span>
+                 </div>
+            </div>
+            <div role="separator" class="dropdown-divider"></div>
+            <h3>Tags:</h3>
+            <input id="tagsCounter" name="tagsCounter" type="hidden" value = "0" hidden>
+            <div role="separator" class="dropdown-divider"></div>
+            <div class="form-group" id="tags">
+            </div>
+        </form></div></div>`;
+            $('.data-modal-body').html(body);
+            if (currData.tags.length === 0) {
+                $('#tags').append(`<div class="form-group">
+        <div class="input-group">
+        <span class="label label-primary" id="dataName">None</span>
+        </div></div>`);
+            } else {
+                for (var i = 0; i < currData.tags.length; i++) {
+                    $('#tags').append(`<div class="form-group"><div class="input-group">
+                    <strong><span class="label label-primary" id="name-${i + 1}" name="name" type="text"placeholder="Tag Name" required>${currData.tags[i].name}</span></strong>
+                    </div></div><div class="form-group"><div class="input-group">
+                    <span class="label label-primary" id="value-${i + 1}" name="value"  type="text" placeholder="Tag value" required>${currData.tags[i].value}</span>
+                    </div></div></div>`);
+                }
+                $("#tagsCounter").val(`${currData.tags.length + 1}`);
+            }
+            $('#requestButton').val(`${id}`);
+            $('#details-modal').modal('show');
+        },
+        error: function (data) {
+            $('#details-modal').modal('show');
+            $('#card-title').html(`<div class="alert alert-danger">
+        <strong>Error(${data.responseJSON['status']})!</strong> ${data.responseJSON['message']}.
+      </div>`);
+        }
+    });
+}
+
+function requestData(dataId) {
+    if (sessionStorage.getItem('x-api-key') === undefined
+        || sessionStorage.getItem('x-api-key') === null
+        || sessionStorage.getItem('x-api-key') === "undefined"
+        || sessionStorage.getItem('x-api-key') === '') {
+        $('#details-modal').modal('hide');
+        $('#login-modal').modal('show');
+        $('#alert-span').html(`<div class="alert alert-danger">
+            <strong>Required!</strong> Please login in order to send a request.</div>`);
+    }
+    else {
+        $.ajax({
+            url: 'http://localhost:3000/transactions',
+            type: 'POST',
+            dataType: 'json',
+            headers: {
+                "x-api-key": `${sessionStorage.getItem('x-api-key')}`,
+                "Content-Type": "application/json"
+            },
+            data: `{"data_id":${dataId}}`,
+            processData: false,
+            success: function (data) {
+                if (data.status === '201') {
+                    $('#card-title').html(`<div class="alert alert-success">
+                    <strong>Success!</strong> ${data.message}<br/>You can track it in the <a href="dashboard.html">dashboard</a> using the Requests Sent tab</div>`);
+                    $('#login-modal').modal('hide');
+                }
+            },
+            error: function (data) {
+                $('#card-title').html(`<div class="alert alert-danger">
+        <strong>Error(${data.responseJSON['status']})!</strong> ${data.responseJSON['message']}.
+      </div>`);
+            }
+        });
+    }
+}
+
 function login(user, pass) {
     if (user === '' || pass === '') {
-        $('#alert-span').html(`  <div class="alert alert-danger">
+        $('#alert-span').html(`<div class="alert alert-danger">
             <strong>Required!</strong> Please fill up the form correctly.
           </div>`);
     }
@@ -56,13 +167,20 @@ function login(user, pass) {
                 }
             },
             error: function (data) {
-                $('#alert-span').html(`  <div class="alert alert-danger">
+                if (data.responseJSON['status'] === '422') {
+                    $('#alert-span').html(`  <div class="alert alert-danger">
+            <strong>Error(${data.responseJSON['status']})!</strong> <a href="activate.html">${data.responseJSON['message']}.
+          </a></div>`);
+                } else {
+                    $('#alert-span').html(`  <div class="alert alert-danger">
             <strong>Error(${data.responseJSON['status']})!</strong> ${data.responseJSON['message']}.
           </div>`);
+                }
+
             }
         });
     }
-}
+}//Done
 
 function signup(user, pass, email, country, province, city, year) {
     $.ajax({
@@ -86,11 +204,11 @@ function signup(user, pass, email, country, province, city, year) {
       </div>`);
         }
     });
-}
+}//Done
 
 function loadDashboard() {
     getUser("dashboard");
-}
+}//Done
 
 function getUser(page) {
     $.ajax({
@@ -208,7 +326,7 @@ function getUser(page) {
             }
         }
     });
-}
+}//Done
 
 function updateUser(user, pass, email, country, province, city, year) {
     $.ajax({
@@ -216,7 +334,7 @@ function updateUser(user, pass, email, country, province, city, year) {
         type: 'put',
         dataType: 'json',
         headers: {
-            'x-api-key': `${sessionStorage.getItem('x-api-key')}`,
+            'x-api-key': sessionStorage.getItem('x-api-key'),
             'Content-Type': 'application/json'
         },
         data: `{"username":"${user}","password":"${pass}","email":"${email}","country":"${country}","province":"${province}","city":"${city}","yearOfBirth":${year}}`,
@@ -227,6 +345,7 @@ function updateUser(user, pass, email, country, province, city, year) {
                 <strong>Success!</strong> User updated successfully<br/>
               </div>`);
             }
+            window.location.assign('index.html');
         },
         error: function (data) {
             $('#card-title').html(`<div class="alert alert-danger">
@@ -253,8 +372,9 @@ function logout() {
             window.location.assign("index.html")
         }
     });
+    sessionStorage.removeItem('x-api-key');
+    sessionStorage.removeItem('owner-uuid');
 }//Done
-
 
 function activate(email, key) {
     $.ajax({
@@ -308,11 +428,11 @@ function requestActivationKey(email) {
         <strong>Required!</strong> Enter your email first then click on Request a new one</div>`);
     }
 
-}
+}//Done
 
 function getEditAccount() {
     getUser("dashboard");
-}
+}//Done
 
 function getMyData() {
     var uid = sessionStorage.getItem('owner-uuid');
@@ -336,10 +456,10 @@ function getMyData() {
                     <br/>Start listing today! Use Sell Data tab.
                   </div>`);
                     }
-                    else{
+                    else {
                         $('#dash-content').html("");
                         var arr = data['data'];
-                        for(var i=0; i<arr.length; i++){
+                        for (var i = 0; i < arr.length; i++) {
                             $('#dash-content').append(`
                             <div>
                             <a class="list-group-item list-group-item-action" id="${arr[i].id}" name='${JSON.stringify(arr[i])}' onclick="showDataDetails(this.id)" role="tab"
@@ -355,10 +475,12 @@ function getMyData() {
     } else {
         //alert failure
     }
-}
+}//Done
 
-function showDataDetails(id){
-    var data =  JSON.parse($(`#${id}`).attr('name'));
+//Called In dashboard
+function showDataDetails(id) {
+    var data = JSON.parse($(`#${id}`).attr('name'));
+    $("#updateButton").val(id);
     var body = `<div class="card text-center">
     <div class="card-title p-3" id="card-title">
         <!-- Alert -->
@@ -375,36 +497,43 @@ function showDataDetails(id){
                     <input class="form-control" name="price" value = "${data.price}" type="number" placeholder="Price" required>
                 </div>
             </div>
+            <select class="form-control" name="categories" id="categories-list"></select>
             <div role="separator" class="dropdown-divider"></div>
             <h3>Tags:</h3>
             <input id="tagsCounter" name="tagsCounter" type="hidden" value = "0" hidden>
             <div role="separator" class="dropdown-divider"></div>
-            <div class="form-group" id="tags">
             
             <button class="btn btn-primary" type="button" onclick="addTag()">Add a new tag</button>
-        </form>
-
-    </div>
-</div>`;
+            <div class="form-group" id="tags">
+            </div>
+        </form></div>`;
     $('.data-modal-body').html(body);
-    for(var i= 0; i< data.tags.length; i++){
-        $('#tags').append(`<div class="form-group">
-        <div class="input-group">
-            <input class="form-control" id="name-${i+1}" name="name" value = "${data.tags[i].name}" type="text" placeholder="Tag Name" required>
+    getCategories("dashboard");
+    for (var i = 0; i < data.tags.length; i++) {
+        $('#tags').append(`<div id="tags-group-${i+1}">
+        <div class="form-group" >
+          <div class="input-group">
+              <input class="form-control" id="name-${i+1}" value="${data.tags[i].name}" type="text" placeholder="Tag Name" required>
+          </div>
         </div>
-    </div>
-    <div class="form-group">
-        <div class="input-group">
-            <input class="form-control" id="value-${i+1}" name="value" value = "${data.tags[i].value}" type="text" placeholder="Tag value" required>
+        <div class="form-group">
+          <div class="input-group">
+              <input class="form-control" id="value-${i+1}" value="${data.tags[i].value}" type="text" placeholder="Tag value" required>
+          </div>
         </div>
-    </div>
-    </div>`);
+              <button class="btn btn-danger" name="removeTagButton" value="${i+1}" type="button" onclick="removeTag(this.value)">Remove</button>
+      </div>`);
     }
     $('#details-modal').modal('show');
+    $(function(){
+        $('#categories-list').val(`${parseInt(data.categoryid)}`).change();
+        $("#tagsCounter").val(data.tags.length);
+    });
+    
 
 }
 
-function getSellData(){
+function getSellData() {
     $('#dash-content').html(`<div class="card text-center">
         <div class="card-header">
             <h3>Data Listing</h3>
@@ -424,38 +553,47 @@ function getSellData(){
                         <input class="form-control" name="price" type="number" placeholder="Price" required>
                     </div>
                 </div>
+                <select class="form-control" name="categories" id="categories-list"></select>
+                
                 <div role="separator" class="dropdown-divider"></div>
                 <h3>Tags:</h3>
                 <input id="tagsCounter" name="tagsCounter" type="hidden" value = "1" hidden>
                 <div role="separator" class="dropdown-divider"></div>
+                <div><button class="btn btn-primary" type="button" onclick="addTag()">Add a new tag</button></div>
                 <div class="form-group" id="tags">
-                <div class="form-group">
-                    <div class="input-group">
-                        <input class="form-control" id="name-1" name="name" type="text" placeholder="Tag Name" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="input-group">
-                        <input class="form-control" id="value-1" name="value" type="text" placeholder="Tag value" required>
-                    </div>
-                </div>
-                </div>
-                <button class="btn btn-primary" type="button" onclick="addTag()">Add a new tag</button>
-            </form>
+
+                <div id="tags-group-1">
+                          <div class="form-group" >
+                            <div class="input-group">
+                                <input class="form-control" id="name-1" name="name" type="text" placeholder="Tag Name" required>
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <div class="input-group">
+                                <input class="form-control" id="value-1" name="value" type="text" placeholder="Tag value" required>
+                            </div>
+                          </div>
+                                <button class="btn btn-danger" name="removeTagButton" value="1" type="button" onclick="removeTag(this.value)">Remove</button>
+                        </div>
+                </form>
 
         </div>
         <div class="card-footer text-muted">
         <button class="btn btn-primary" type="button" onclick="listData(dataForm.dataName.value,dataForm.price.value)">Add Data</button>
         </div>
     </div>`);
-}
+    $(function(){
+        getCategories("dashboard");
+    });
+}//Done
 
-function listData(name, price){
+function listData(name, price) {
     //Get Tags 
     var tags = [];
     var i = parseInt($("#tagsCounter").val());
     var increment = 1;
-    while(increment <= i){
+    var categoryid = $("#categories-list").val();
+    while (increment <= i) {
         tags.push(`{"key":"${$(`#name-${increment}`).val()}", "value":"${$(`#value-${increment}`).val()}"}`);
         increment++;
     }
@@ -465,10 +603,48 @@ function listData(name, price){
         type: 'post',
         dataType: 'json',
         headers: {
-            'Content-Type':'application/json',
+            'Content-Type': 'application/json',
             'x-api-key': sessionStorage.getItem('x-api-key')
         },
-        data: `{"name":"${name}", "price":"${price}", "categoryid": 1, "tags":[${tags}]}`,
+        data: `{"name":"${name}", "price":"${price}", "categoryid": ${categoryid}, "tags":[${tags}]}`,
+        processData: false,
+        success: function (data) {
+            if (data.status === '201') {
+                $("#card-title").html(`<div class="alert alert-success">
+                <strong>Success!</strong> Data listed successfully.<br/>
+                You can browse it using My Data tab.
+              </div>`);
+            }
+        },
+        error: function (data) {
+            $('#card-title').html(`<div class="alert alert-danger">
+        <strong>Error(${data.responseJSON['status']})!</strong> ${data.responseJSON['message']}.
+      </div>`);
+        }
+    });
+
+}//Done
+
+function updateData(){
+    //Get Tags 
+    var tags = [];
+    var i = parseInt($("#tagsCounter").val());
+    var increment = 1;
+    var categoryid = $("#categories-list").val();
+    while (increment <= i) {
+        tags.push(`{"key":"${$(`#name-${increment}`).val()}", "value":"${$(`#value-${increment}`).val()}"}`);
+        increment++;
+    }
+    //Post Data to the server
+    $.ajax({
+        url: 'http://localhost:3000/data',
+        type: 'post',
+        dataType: 'json',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': sessionStorage.getItem('x-api-key')
+        },
+        data: `{"name":"${name}", "price":"${price}", "categoryid": ${categoryid}, "tags":[${tags}]}`,
         processData: false,
         success: function (data) {
             if (data.status === '201') {
@@ -487,18 +663,29 @@ function listData(name, price){
 
 }
 
-function addTag(){
+function addTag() {
     var i = parseInt($("#tagsCounter").val());
-    $("#tagsCounter").val(i+1);
-    $('#tags').append(`<div role="separator" class="dropdown-divider"></div>
-    <div class="form-group"><div class="input-group">
-        <input class="form-control" id="name-${i+1}" name="name" type="text" placeholder="Tag Name" required>
-    </div>
-    </div>
-    <div class="form-group"><div class="input-group">
-        <input class="form-control" id="value-${i+1}" name="value" type="text" placeholder="Tag value" required>
-    </div>
-    </div></div>`);
+    $("#tagsCounter").val(i + 1);
+    $('#tags').append(`<div id="tags-group-${i+1}">
+                          <div class="form-group" >
+                            <div class="input-group">
+                                <input class="form-control" id="name-${i+1}" name="name" type="text" placeholder="Tag Name" required>
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <div class="input-group">
+                                <input class="form-control" id="value-${i+1}" name="value" type="text" placeholder="Tag value" required>
+                            </div>
+                          </div>
+                                <button class="btn btn-danger" name="removeTagButton" value="${i+1}" type="button" onclick="removeTag(this.value)">Remove</button>
+                        </div>`);
+}//Done
+
+function removeTag(tagId){
+    //$(`#name-${tagId}`).remove();
+    //$(`#value-${tagId}`).remove();
+    $("#tagsCounter").val($("#tagsCounter").val()-1);
+    $(`div[id="tags-group-${tagId}"]`).remove();
 }
 
 function getInRequests() {
