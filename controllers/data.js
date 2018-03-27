@@ -33,7 +33,8 @@ module.exports = function (app, con) {
                             res.end();
                         }
                         else{
-                            con.query(`INSERT INTO data (name, price, owner_id, category_id) VALUES ('${req.body.name}',${Math.abs(req.body.price)},${result[0].id},${req.body.categoryid})`, function (err, result) {
+                            var query = `INSERT INTO data (name, price, owner_id, category_id) VALUES ('${req.body.name}',${Math.abs(req.body.price)},${result[0].id},${req.body.categoryid})`;
+                            con.query(query, function (err, result) {
                                 if (err) {
                                     res.writeHead(500, { 'Content-Type': 'application/json' });
                                     res.write(`{"status": "error", "message":"Internal Error"}`);
