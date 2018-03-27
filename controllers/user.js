@@ -32,8 +32,8 @@ module.exports = function (app, con) {
                     }
                     else {
                         if (result[0].validated === 0) {
-                            res.writeHead(401, { 'Content-Type': 'application/json' });
-                            res.write(`{"status": "401", "message":"Unauthorized access. Validation required"}`);
+                            res.writeHead(422, { 'Content-Type': 'application/json' });
+                            res.write(`{"status": "422", "message":"Validation required"}`);
                             res.end();
                         }
                         else {
@@ -78,12 +78,6 @@ module.exports = function (app, con) {
                         res.end();
                     }
                     else {
-                        if (result[0].validated === 0) {
-                            res.writeHead(401, { 'Content-Type': 'application/json' });
-                            res.write(`{"status": "401", "message":"Unauthorized access. Validation required"}`);
-                            res.end();
-                        }
-                        else {
                             var apiKey = apikey(30);
                             con.query(`UPDATE users SET apiKey = '${apiKey}' WHERE id = ${result[0].id}`, function (err, result) {
                                 if (err) {
@@ -97,7 +91,6 @@ module.exports = function (app, con) {
                                     res.end();
                                 }
                             });
-                        }
                     }
                 }
             });
@@ -182,7 +175,8 @@ module.exports = function (app, con) {
                                 subject: "Activate your account",
                                 generateTextFromHTML: true,
                                 html: `<h3>Welcome back to The Data Market:</h3>
-                                Activation Key:<br/> ${apiKey}<br/>`
+                                Activation Key:<br/> ${apiKey}<br/>
+                                Please visit this link and paste your activation key: <a href="http://localhost/activate.html"></a>`
                             };
 							
                             transporter.sendMail(mailOptions, function (error, response) {
@@ -217,8 +211,8 @@ module.exports = function (app, con) {
                 }
                 else {
                     if (result[0].validated === 0) {
-                        res.writeHead(401, { 'Content-Type': 'application/json' });
-                        res.write(`{"status": "401", "message":"Unauthorized access. Validation required"}`);
+                        res.writeHead(422, { 'Content-Type': 'application/json' });
+                        res.write(`{"status": "422", "message":"Validation required"}`);
                         res.end();
                     }
                     else {
@@ -329,8 +323,8 @@ module.exports = function (app, con) {
                 else { //Else update the user associated with the API KEY
                     con.query(`UPDATE users SET username ="${req.body.username}", password = "${md5(req.body.password)}", email = "${req.body.email}", country = "${req.body.country}" , city = "${req.body.city}" , province = "${req.body.province}", yearOfBirth = ${req.body.yearOfBirth} WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
                         if (err) {
-                            res.writeHead(500, { 'Content-Type': 'application/json' });
-                            res.write(`{"status": "error", "message":"Internal Error"}`);
+                            res.writeHead(409, { 'Content-Type': 'application/json' });
+                            res.write(`{"status": "error", "message":"Cannot be completed"}`);
                             res.end();
                         }
                         else {

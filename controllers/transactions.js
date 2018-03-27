@@ -69,6 +69,8 @@ module.exports = function (app, con) {
                     res.end();
                 }
                 else {
+                    if(req.body.data_id !== undefined && req.body.data_id !== ''){
+                    var requester_uuid = result[0].uuid;
                     con.query(`SELECT * FROM data WHERE id = ${req.body.data_id} AND owner_id <> ${result[0].id}`, function (err, result) {
                         if (err) {
                             res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -77,10 +79,11 @@ module.exports = function (app, con) {
                         }
                         else {
                             if (result.length > 0) {
-                                con.query(`INSERT INTO transactions (requester_uuid, status, timestamp, data_id) VALUES ('${result[0].uuid}','Pending',UNIX_TIMESTAMP(NOW()),${req.body.data_id})`, function (err, result) {
+                                console.log(JSON.stringify(result));
+                                con.query(`INSERT INTO transactions (requester_uuid, status, timestamp, data_id) VALUES ('${requester_uuid}','Pending',UNIX_TIMESTAMP(NOW()),${req.body.data_id})`, function (err, result) {
                                     if (err) {
                                         res.writeHead(500, { 'Content-Type': 'application/json' });
-                                        res.write(`{"status": "error", "message":"Internal Error"}`);
+                                        res.write(`{"status": "500", "message":"Internal Error"}`);
                                         res.end();
                                     }
                                     else {
@@ -92,11 +95,17 @@ module.exports = function (app, con) {
                             }
                             else {
                                 res.writeHead(422, { 'Content-Type': 'application/json' });//Unprocessable entity
-                                res.write(`{"status": "422", "message":"Wrong data"}`);
+                                res.write(`{"status": "422", "message":"Request cannot be completed!"}`);
                                 res.end();
                             }
                         }
                     });
+                    }
+                    else{
+                        res.writeHead(400, { 'Content-Type': 'application/json' });//Unprocessable entity
+                        res.write(`{"status": "400", "message":"Request error!."}`);
+                        res.end();
+                    }
                 }
             }
         });

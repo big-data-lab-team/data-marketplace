@@ -17,48 +17,66 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.use('/', function (req, res, next) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader('Access-Control-Allow-Headers', '*');
-    res.setHeader('Access-Control-Allow-Methods', '*');
-  if (req.headers['x-api-key'] === undefined) {
-    if (req.url === '/user/auth' || req.url === '/user/auth/' || req.url === '/data' || req.url === '/data/' || req.url === '/user/validate'
-      || ((req.url === '/data/categories' || req.url === '/data/categories/') && req.method === 'GET')) {
-      next();
-    }
-    else if ((req.url === '/user' || req.url === '/user/')) {// && req.method === 'POST'
-      next();
-    }
-    else {
-      res.writeHead(401, { 'Content-Type': 'application/json' });
-      res.write(`{"status": "401", "message":"Auth required"}`);
-      res.end();
-    }
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods",  "POST, GET, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Credentials",  false);
+  res.setHeader("Access-Control-Max-Age", '86400'); // 24 hours
+  res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, x-api-key, x-data-filters");
+      
+  if (req.method === 'OPTIONS') {
+      var headers = {};
+      // IE8 does not allow domains to be specified, just the *
+      // headers["Access-Control-Allow-Origin"] = req.headers.origin;
+      headers["Access-Control-Allow-Origin"] = "*";
+      headers["Access-Control-Allow-Methods"] = "POST, GET, PUT, DELETE, OPTIONS";
+      headers["Access-Control-Allow-Credentials"] = false;
+      headers["Access-Control-Max-Age"] = '86400'; // 24 hours
+      headers["Access-Control-Allow-Headers"] = "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, x-api-key, x-data-filters";
+      res.writeHead(200, headers);
+      res.end();  
   }
   else {
-    con.query(`SELECT * FROM users WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
-      if (err) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.write(`{"status": "400", "message":"Bad request"}`);
-        res.end();
+    if (req.headers['x-api-key'] === undefined) {
+      if (req.url === '/user/auth' || req.url === '/user/auth/' || req.url === '/data' || req.url === '/data/' || req.url === '/user/validate'
+        || ((req.url === '/data/categories' || req.url === '/data/categories/') && req.method === 'GET')) {
+        next();
+      }
+      else if ((req.url === '/user' || req.url === '/user/')) {// && req.method === 'POST'
+        next();
       }
       else {
-        if (result.length === 0) {
-          res.writeHead(401, { 'Content-Type': 'application/json' });
-          res.write(`{"status": "401", "message":"Unauthorized access"}`);
+        console.log(req.body);
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.write(`{"status": "401", "message":"Auth required"}`);
+        res.end();
+      }
+    }
+    else {
+      con.query(`SELECT * FROM users WHERE apiKey like '${req.headers['x-api-key']}'`, function (err, result) {
+        if (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.write(`{"status": "400", "message":"Bad request"}`);
           res.end();
         }
         else {
-          if (result[0].validated === 0) {
-            res.writeHead(403, { 'Content-Type': 'application/json' });
-            res.write(`{"status": "403", "message":"Forbidden access! Validation required"}`);
+          if (result.length === 0) {
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.write(`{"status": "401", "message":"Unauthorized access"}`);
             res.end();
           }
           else {
-            next();
+            if (result[0].validated === 0) {
+              res.writeHead(403, { 'Content-Type': 'application/json' });
+              res.write(`{"status": "403", "message":"Forbidden access! Validation required"}`);
+              res.end();
+            }
+            else {
+              next();
+            }
           }
         }
-      }
-    });
+      });
+    }
   }
 });
 
