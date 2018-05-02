@@ -1,20 +1,11 @@
 <h1>Data Market</h1>
 
-<h1>HOW TO: (Make sure you have root or admin access)</h1>
 <ul>
-  
-    The API and the UI are two separate application:
-    put datamarket folder, included in the www/ directory, in your machine localhost www web directory
-  
-  <strong>Run these commands to install npm and node:</strong>
- 
-    npm install npm@latest -g
-    npm install node@latest -g
-  
-  <strong>You can also Download and install from (If the previous step did not work):</strong>
-  
-    https://nodejs.org/en/download/current/
-    
+  <strong>Requirements</strong>
+     
+     Root or Admin access
+     ode JS installed
+     
   <strong>Clone this repository:</strong>
   
     git clone https://github.com/wassimsabra/data-marketplace.git
@@ -45,4 +36,7 @@
   
       All API calls are defined here: https://app.swaggerhub.com/apis/wassimsabra/DATACOIN/1.0.0
 
+  <strong>Move /datamarket folder from the directory /www/datamarket/ to your public web server directory </strong>
+    
+        (ex. /var/www/html/ in Ubuntu)
 </ul>
