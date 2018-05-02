@@ -12,12 +12,11 @@
     cd data-marketplace
     The cloned repo contain the database sql script you will need it in the next step
     
-  <strong>Assuming you have MySQL server installed execute the following commands:</strong>
+  <strong>Database Seed:</strong>
       
-      Run this query: 
-      source $PATH\datacoin.sql
-      NOTE: ($PATH = path of the sql script where the this repo was cloned on your local machine)
-      You should be logged in to the mysql server and the command line is ready to process queries(mysql> )
+      Login to your mysql server and make sure your terminal shows mysql>
+      Run this query: source $PATH\datacoin.sql
+      $PATH = path of the sql script where the this repo was cloned on your local machine
   
   <strong>Database Configuration:</strong>
       
