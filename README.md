@@ -4,7 +4,7 @@
   <strong>Requirements</strong>
      
      Root or Admin access
-     ode JS installed
+     Node JS installed
      
   <strong>Clone this repository:</strong>
   
