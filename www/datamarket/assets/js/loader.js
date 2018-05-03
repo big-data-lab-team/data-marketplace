@@ -4,7 +4,7 @@ function loadMain() {
     getData('');
 }
 function getCategories(page) {
-    $.get("http://datacoin.iptvclient.com:3000/data/categories", function (data, status) {
+    $.get("http://localhost:3000/data/categories", function (data, status) {
         var arr = data.categories;
         if (data.status === '200') {
             if (page === "main") {
@@ -31,7 +31,7 @@ function getCategories(page) {
 }
 
 function getData(filters) {
-    $.get("http://datacoin.iptvclient.com:3000/data", function (data, status) {
+    $.get("http://localhost:3000/data", function (data, status) {
         var arr = data.data;
         if (data.status === '200') {
             var html = '';
@@ -48,7 +48,7 @@ function showData(id) {
     var filters = {};
     filters['data-id'] = `${id}`;
     $.ajax({
-        url: 'http://datacoin.iptvclient.com:3000/data',
+        url: 'http://localhost:3000/data',
         type: 'get',
         dataType: 'json',
         headers: {
@@ -119,7 +119,7 @@ function requestData(dataId) {
     }
     else {
         $.ajax({
-            url: 'http://datacoin.iptvclient.com:3000/transactions',
+            url: 'http://localhost:3000/transactions',
             type: 'POST',
             dataType: 'json',
             headers: {
@@ -152,7 +152,7 @@ function login(user, pass) {
     }
     else {
         $.ajax({
-            url: 'http://datacoin.iptvclient.com:3000/user/auth',
+            url: 'http://localhost:3000/user/auth',
             type: 'post',
             dataType: 'json',
             contentType: 'application/json',
@@ -184,7 +184,7 @@ function login(user, pass) {
 
 function signup(user, pass, email, country, province, city, year) {
     $.ajax({
-        url: 'http://datacoin.iptvclient.com:3000/user',
+        url: 'http://localhost:3000/user',
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',
@@ -212,7 +212,7 @@ function loadDashboard() {
 
 function getUser(page) {
     $.ajax({
-        url: "http://datacoin.iptvclient.com:3000/user",
+        url: "http://localhost:3000/user",
         type: "GET",
         headers: {
             "x-api-key": `${sessionStorage.getItem('x-api-key')}`,
@@ -330,7 +330,7 @@ function getUser(page) {
 
 function updateUser(user, pass, email, country, province, city, year) {
     $.ajax({
-        url: 'http://datacoin.iptvclient.com:3000/user',
+        url: 'http://localhost:3000/user',
         type: 'put',
         dataType: 'json',
         headers: {
@@ -345,7 +345,7 @@ function updateUser(user, pass, email, country, province, city, year) {
                 <strong>Success!</strong> User updated successfully<br/>
               </div>`);
             }
-            window.location.assign('dashboard.html');
+            window.location.assign('index.html');
         },
         error: function (data) {
             $('#card-title').html(`<div class="alert alert-danger">
@@ -357,7 +357,7 @@ function updateUser(user, pass, email, country, province, city, year) {
 
 function logout() {
     $.ajax({
-        url: 'http://datacoin.iptvclient.com:3000/user/logout',
+        url: 'http://localhost:3000/user/logout',
         type: 'get',
         dataType: 'json',
         headers: {
@@ -378,7 +378,7 @@ function logout() {
 
 function activate(email, key) {
     $.ajax({
-        url: 'http://datacoin.iptvclient.com:3000/user/validate',
+        url: 'http://localhost:3000/user/validate',
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',
@@ -400,26 +400,24 @@ function activate(email, key) {
     });
 }//Done
 
-function requestValidationKey(username, password) {
-    if (username !== '' && username !== undefined && password !== '' && password !== undefined) {
+function requestActivationKey(email) {
+    if (email !== '' && email !== undefined) {
         $.ajax({
-            url: "http://datacoin.iptvclient.com:3000/user/validate",
-            type: "POST",
-            dataType: 'json',
+            url: "http://localhost:3000/user/validate",
+            type: "GET",
             headers: {
-                "Content-Type": "application/json"
+                "x-user-email": `${email}`,
+                "Content-Type": "text/plain"
             },
-            data: `{"username":"${username}", "password":"${password}"}`,
-            processData: false,
             success: function (data) {
                 if (data.status === '200') {
-                    $("#validation-alert-span").html(`<div class="alert alert-success">
+                    $("#card-title").html(`<div class="alert alert-success">
                 <strong>Success!</strong> ${data.message}
               </div>`);
                 }
             },
             error: function (data) {
-                $('#validation-alert-span').html(`<div class="alert alert-danger">
+                $('#card-title').html(`<div class="alert alert-danger">
         <strong>Error(${data.responseJSON['status']})!</strong> ${data.responseJSON['message']}.
       </div>`);
             }
@@ -443,7 +441,7 @@ function getMyData() {
 
     if (uid !== undefined && uid !== '') {
         $.ajax({
-            url: 'http://datacoin.iptvclient.com:3000/data',
+            url: 'http://localhost:3000/data',
             type: 'get',
             dataType: 'json',
             headers: {
@@ -547,12 +545,12 @@ function getSellData() {
             <form id="data-form" name="dataForm">
                 <div class="form-group">
                     <div class="input-group">
-                        <input class="form-control" id="data-name" name="dataName" type="text" placeholder="Data Name" required>
+                        <input class="form-control" name="dataName" type="text" placeholder="Data Name" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="input-group">
-                        <input class="form-control" id="data-price" name="price" type="number" placeholder="Price" required>
+                        <input class="form-control" name="price" type="number" placeholder="Price" required>
                     </div>
                 </div>
                 <select class="form-control" name="categories" id="categories-list"></select>
@@ -581,7 +579,7 @@ function getSellData() {
 
         </div>
         <div class="card-footer text-muted">
-        <button class="btn btn-primary" type="button" onclick="listData()">Add Data</button>
+        <button class="btn btn-primary" type="button" onclick="listData(dataForm.dataName.value,dataForm.price.value)">Add Data</button>
         </div>
     </div>`);
     $(function(){
@@ -589,28 +587,26 @@ function getSellData() {
     });
 }//Done
 
-function listData() {
-    var name = $("#data-name").val();
-    var price = $("#data-price").val();
+function listData(name, price) {
     //Get Tags 
     var tags = [];
     var i = parseInt($("#tagsCounter").val());
     var increment = 1;
+    var categoryid = $("#categories-list").val();
     while (increment <= i) {
         tags.push(`{"key":"${$(`#name-${increment}`).val()}", "value":"${$(`#value-${increment}`).val()}"}`);
         increment++;
     }
-    var d = `{"name":"${name}", "price":${price}, "categoryid": ${$("#categories-list option:selected").val()}, "tags":[${tags}]}`;
     //Post Data to the server
     $.ajax({
-        url: 'http://datacoin.iptvclient.com:3000/data',
+        url: 'http://localhost:3000/data',
         type: 'post',
         dataType: 'json',
         headers: {
             'Content-Type': 'application/json',
             'x-api-key': sessionStorage.getItem('x-api-key')
         },
-        data: d,
+        data: `{"name":"${name}", "price":"${price}", "categoryid": ${categoryid}, "tags":[${tags}]}`,
         processData: false,
         success: function (data) {
             if (data.status === '201') {
@@ -633,7 +629,6 @@ function updateData(){
     //Get Tags 
     var tags = [];
     var i = parseInt($("#tagsCounter").val());
-    alert(i);
     var increment = 1;
     var categoryid = $("#categories-list").val();
     while (increment <= i) {
@@ -642,7 +637,7 @@ function updateData(){
     }
     //Post Data to the server
     $.ajax({
-        url: 'http://datacoin.iptvclient.com:3000/data',
+        url: 'http://localhost:3000/data',
         type: 'post',
         dataType: 'json',
         headers: {
@@ -694,137 +689,15 @@ function removeTag(tagId){
 }
 
 function getInRequests() {
-    $.ajax({
-        url: 'http://datacoin.iptvclient.com:3000/transactions',
-        type: 'get',
-        dataType: 'json',
-        headers: {
-            'x-api-key': sessionStorage.getItem('x-api-key'),
-            'x-tx-filters': `{"receiver_uuid":"${sessionStorage.getItem('owner-uuid')}"}`
-        },
-        success: function (data) {
-            //alert(JSON.stringify(data));
-            if (data.status === '200') {
-                if(data.transactions.length === 0){
-                    $('#dash-content').html(`<div class="alert alert-info">
-                    <strong>Empty!</strong> You have not listed any data yet. 
-                    <br/>Start listing today! Use Sell Data tab.
-                  </div>`);
-                }
-                else{
-                    var html ='';
-                    var arr = data.transactions;
-                    for(var i=0; i<arr.length; i++){
-                        if(arr[i].status === "Pending"){
-                        html+=`<a class="list-group-item list-group-item-action" id="${arr[i].id}" onclick="showTransaction(this.id)" data-toggle="modal" data-target="#transactions-modal" role="tab"
-                        aria><button type="button" class="btn btn-info">${arr[i].status}</button> Data: ${arr[i].data.name} | ${arr[i].data.price}$</a>`;
-                        }
-                        else{
-                            html+=`<a class="list-group-item list-group-item-action" id="${arr[i].id}" onclick="showTransaction(this.id)" data-toggle="modal" data-target="#transactions-modal" role="tab"
-                        aria>( ${arr[i].status} )</button> Data: ${arr[i].data.name} | ${arr[i].data.price}$</a>`;
-                        
-                        }
-                    }
-                }
-            
-                $("#dash-content").html(html);
-            }
-        },
-        error: function (data) {
-            $('#card-title').html(`<div class="alert alert-danger">
-        <strong>Error(${data.responseJSON['status']})!</strong> ${data.responseJSON['message']}.
-      </div>`);
-        }
-    });
-}//Done
+
+}
 
 function getOutRequests() {
-    $.ajax({
-        url: 'http://datacoin.iptvclient.com:3000/transactions',
-        type: 'get',
-        dataType: 'json',
-        headers: {
-            'x-api-key': sessionStorage.getItem('x-api-key'),
-            'x-tx-filters': `{"requester_uuid":"${sessionStorage.getItem('owner-uuid')}"}`
-        },
-        success: function (data) {
-            //alert(JSON.stringify(data));
-            if (data.status === '200') {
-                if(data.transactions.length === 0){
-                    $('#dash-content').html(`<div class="alert alert-info">
-                    <strong>Empty!</strong> You have not listed any data yet. 
-                    <br/>Start listing today! Use Sell Data tab.
-                  </div>`);
-                }
-                else{
-                    var html ='';
-                    var arr = data.transactions;
-                    for(var i=0; i<arr.length; i++){
-                        if(arr[i].status === "Sample uploaded"){
-                        html+=`<a class="list-group-item list-group-item-action" id="${arr[i].id}" onclick="showTransaction(this.id)" data-toggle="modal" data-target="#transactions-modal" role="tab"
-                        aria><button type="button" class="btn btn-info">${arr[i].status}</button> Data: ${arr[i].data.name} | ${arr[i].data.price}$</a>`;
-                        }
-                        else{
-                            html+=`<a class="list-group-item list-group-item-action" id="${arr[i].id}" onclick="showTransaction(this.id)" data-toggle="modal" data-target="#transactions-modal" role="tab"
-                        aria>( ${arr[i].status} )</button> Data: ${arr[i].data.name} | ${arr[i].data.price}$</a>`;
-                         
-                        }
-                    }
-                }
-            
-                $("#dash-content").html(html);
-            }
-        },
-        error: function (data) {
-            $('#card-title').html(`<div class="alert alert-danger">
-        <strong>Error(${data.responseJSON['status']})!</strong> ${data.responseJSON['message']}.
-      </div>`);
-        }
-    });
-}//Done
 
-function showTransaction(id) {
-    $.ajax({
-        url: 'http://datacoin.iptvclient.com:3000/transactions',
-        type: 'get',
-        dataType: 'json',
-        headers: {
-            'x-api-key': sessionStorage.getItem('x-api-key'),
-            'x-tx-filters': `{"tx_id":${id}}`
-        },
-        success: function (data) {
-            //alert(JSON.stringify(data));
-            if (data.status === '200') {
-                if(data.transactions.length === 0){
-                    $('#dash-content').html(`<div class="alert alert-info">
-                    <strong>Empty!</strong> Transaction not found.
-                  </div>`);
-                }
-                else{
-                    var html ='';
-                    var arr = data.transactions;
-                    for(var i=0; i<arr.length; i++){
-                        if(arr[i].status === "Sample uploaded"){
-                        html+=`<a class="list-group-item list-group-item-action" id="${arr[i].id}" onclick="showTransaction(this.id)" data-toggle="modal" data-target="#transactions-modal" role="tab"
-                        aria><button type="button" class="btn btn-info">${arr[i].status}</button> Data: ${arr[i].data.name} | ${arr[i].data.price}$</a>`;
-                        }
-                        else{
-                            html+=`<a class="list-group-item list-group-item-action" id="${arr[i].id}" onclick="showTransaction(this.id)" data-toggle="modal" data-target="#transactions-modal" role="tab"
-                        aria>( ${arr[i].status} )</button> Data: ${arr[i].data.name} | ${arr[i].data.price}$</a>`;
-                         
-                        }
-                    }
-                }
-            
-                $("#dash-content").html(html);
-            }
-        },
-        error: function (data) {
-            $('#card-title').html(`<div class="alert alert-danger">
-        <strong>Error(${data.responseJSON['status']})!</strong> ${data.responseJSON['message']}.
-      </div>`);
-        }
-    });
+}
+
+function getTransactions(filters) {
+
 }
 
 function updateStatus() {

@@ -316,7 +316,7 @@ module.exports = function (app, con) {
                     else {
                         var uid = uuid();// a unique id is generated
                         var apiKey = apikey(30);
-                        var toEmail = `"${result[0].email}"`;
+                        var toEmail = `"${req.body.email}"`;
                         con.query(`INSERT INTO users (username, password, email, uuid, apiKey, country, city, province, yearOfBirth) VALUES ("${req.body.username}", "${md5(req.body.password)}", "${req.body.email}", "${uid}","${apiKey}", "${req.body.country}", "${req.body.city}", "${req.body.province}", ${req.body.yearOfBirth})`, function (err, result) {
                             if (err) {
                                 res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -332,7 +332,7 @@ module.exports = function (app, con) {
                                     generateTextFromHTML: true,
                                     html: `<h3>Welcome to The Data Market:</h3>
                                     Activation Key: ${apiKey}<br/>
-                                    Please visit this link and paste your activation key: <a href="http://localhost/activate.html"></a>`
+                                    Please visit this link and paste your activation key: http://localhost/activate.html`
                                 };
                                 transporter.sendMail(mailOptions, function (error, response) {
                                     if (error) {

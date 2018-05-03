@@ -42,7 +42,7 @@ module.exports = function (app, con) {
                         else {
                             var arr = [];
                             for (let i = 0; i < result.length; i++) {
-                                arr.push(`{"id":${result[i].id}, "requester_uuid":"${result[i].requester_uuid}", "receiver_uuid":"${result[i].receiver_uuid}", "status":"${result[i].status}","timestamp":${result[i].timestamp},"data":{"id":${result[i].id},"name":"${result[i].name}","price":${result[i].price},"category_name":"${result[i].category_name}"}}`);
+                                arr.push(`{"id":${result[i].id}, "requester_uuid":"${result[i].requester_uuid}", "receiver_uuid":"${result[i].receiver_uuid}", "status":"${result[i].status}","timestamp":"${result[i].timestamp}","data":{"id":${result[i].id},"name":"${result[i].name}","price":${result[i].price},"category_name":"${result[i].category_name}"}}`);
                             }
                             res.writeHead(200, { 'Content-Type': 'application/json' });
                             res.write(`{"status": "200", "transactions":[${arr}]}`);
@@ -79,8 +79,7 @@ module.exports = function (app, con) {
                         }
                         else {
                             if (result.length > 0) {
-                                console.log(JSON.stringify(result));
-                                con.query(`INSERT INTO transactions (requester_uuid, status, timestamp, data_id) VALUES ('${requester_uuid}','Pending',UNIX_TIMESTAMP(NOW()),${req.body.data_id})`, function (err, result) {
+                                con.query(`INSERT INTO transactions (requester_uuid, status,  data_id) VALUES ('${requester_uuid}','pending', ${req.body.data_id})`, function (err, result) {
                                     if (err) {
                                         res.writeHead(500, { 'Content-Type': 'application/json' });
                                         res.write(`{"status": "500", "message":"Internal Error"}`);
@@ -184,9 +183,10 @@ module.exports = function (app, con) {
                                              * Special case 1: Where the owner is updating the status
                                              */
                                             //User should be the owner to accept or reject and status should be Pending
-                                            if (result[0].status === "Pending" && result[0].owner_uuid === useruuid && (req.body.status.toLowerCase() === "accepted" || req.body.status.toLowerCase() === "rejected")) {
+                                            if (result[0].status.toLowerCase() === "pending" && result[0].owner_uuid === useruuid && (req.body.status.toLowerCase() === "accepted" || req.body.status.toLowerCase() === "rejected")) {
                                                 con.query(`UPDATE transactions SET status = "${req.body.status.toLowerCase()}" WHERE id = ${req.body.id}`, function (err, result) {
                                                     if (err) {
+                                                        
                                                         res.writeHead(500, { 'Content-Type': 'application/json' });
                                                         res.write(`{"status": "error", "message":"Internal Error"}`);
                                                         res.end();
@@ -211,7 +211,8 @@ module.exports = function (app, con) {
                                                     }
                                                     else {
                                                         res.writeHead(200, { 'Content-Type': 'application/json' });
-                                                        res.write(`{"status": "200", "message":"Status updated to ${allowed[result[0].status]}"}`);
+                                                        console.log(result[0]);
+                                                        res.write(`{"status": "200", "message":"Status updated to ${req.body.status}"}`);
                                                         res.end();
                                                     }
                                                 });
